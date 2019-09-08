@@ -16,6 +16,8 @@
 using namespace muduo;
 using namespace muduo::net;
 
+//// mihooke 注释
+//// 线程池构造：传递接收器所在的loop
 EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, const string& nameArg)
   : baseLoop_(baseLoop),
     name_(nameArg),
@@ -30,6 +32,8 @@ EventLoopThreadPool::~EventLoopThreadPool()
   // Don't delete loop, it's stack variable
 }
 
+//// mihooke 注释
+//// 启动线程池：根据设置的池中数量来创建系统线程
 void EventLoopThreadPool::start(const ThreadInitCallback& cb)
 {
   assert(!started_);
@@ -50,7 +54,9 @@ void EventLoopThreadPool::start(const ThreadInitCallback& cb)
     cb(baseLoop_);
   }
 }
-
+//// mihooke 注释
+//// 通过轮询来选择loop，如果线程池线程数量为0,则返回接收器所在的loop
+//// 即单线程server，接收连接和连接处理在同一个线程中，同一个loop中
 EventLoop* EventLoopThreadPool::getNextLoop()
 {
   baseLoop_->assertInLoopThread();
@@ -70,6 +76,8 @@ EventLoop* EventLoopThreadPool::getNextLoop()
   return loop;
 }
 
+//// mihooke 注释
+//// 通过哈希来选择loop
 EventLoop* EventLoopThreadPool::getLoopForHash(size_t hashCode)
 {
   baseLoop_->assertInLoopThread();
@@ -82,6 +90,8 @@ EventLoop* EventLoopThreadPool::getLoopForHash(size_t hashCode)
   return loop;
 }
 
+//// mihooke 注释
+//// 返回所有loop
 std::vector<EventLoop*> EventLoopThreadPool::getAllLoops()
 {
   baseLoop_->assertInLoopThread();

@@ -19,6 +19,8 @@
 using namespace muduo;
 using namespace muduo::net;
 
+/// server构造：接收连接和线程池
+/// 有新连接到来，回调TcpServer::newConnection
 TcpServer::TcpServer(EventLoop* loop,
                      const InetAddress& listenAddr,
                      const string& nameArg,
@@ -50,12 +52,14 @@ TcpServer::~TcpServer()
   }
 }
 
+/// 设置线程池线程数目
 void TcpServer::setThreadNum(int numThreads)
 {
   assert(0 <= numThreads);
   threadPool_->setThreadNum(numThreads);
 }
 
+/// server启动：1. 启动线程池；2. 启动监听套接字
 void TcpServer::start()
 {
   if (started_.getAndSet(1) == 0)
@@ -68,6 +72,10 @@ void TcpServer::start()
   }
 }
 
+/// 新连接到来，为新连接设置回调
+/// 先从线程池选择一个EventLopp，那么这个新连接就只能在此loop里运行了
+/// 保存此连接
+/// 回调连接建立函数
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 {
   loop_->assertInLoopThread();
@@ -103,6 +111,7 @@ void TcpServer::removeConnection(const TcpConnectionPtr& conn)
   loop_->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
 }
 
+/// 删除连接
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
 {
   loop_->assertInLoopThread();

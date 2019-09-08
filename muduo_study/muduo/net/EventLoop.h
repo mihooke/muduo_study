@@ -144,16 +144,16 @@ class EventLoop : noncopyable
   int64_t iteration_;
   const pid_t threadId_;
   Timestamp pollReturnTime_;
-  std::unique_ptr<Poller> poller_;
-  std::unique_ptr<TimerQueue> timerQueue_;
-  int wakeupFd_;
+  std::unique_ptr<Poller> poller_;//// mihooke 注释: 有一个poller
+  std::unique_ptr<TimerQueue> timerQueue_;//// mihooke 注释: 定时器队列
+  int wakeupFd_;//// mihooke 注释: eventfd,用于当poller没有事件时，唤醒loop执行一些其他事情
   // unlike in TimerQueue, which is an internal class,
   // we don't expose Channel to client.
-  std::unique_ptr<Channel> wakeupChannel_;
+  std::unique_ptr<Channel> wakeupChannel_;//// mihooke 注释: 专属eventfd唤醒通道
   boost::any context_;
 
   // scratch variables
-  ChannelList activeChannels_;
+  ChannelList activeChannels_;//// mihooke 注释: 保存了当前loop中所有事件的通道
   Channel* currentActiveChannel_;
 
   mutable MutexLock mutex_;

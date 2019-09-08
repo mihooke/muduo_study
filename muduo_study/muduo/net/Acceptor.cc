@@ -22,6 +22,8 @@
 using namespace muduo;
 using namespace muduo::net;
 
+/// 接收器构造：创建监听socket fd，创建接收通道
+/// fd可读事件回调Acceptor::handleRead
 Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport)
   : loop_(loop),
     acceptSocket_(sockets::createNonblockingOrDie(listenAddr.family())),
@@ -44,6 +46,7 @@ Acceptor::~Acceptor()
   ::close(idleFd_);
 }
 
+/// 开启监听，设置接收通道关心可读事件
 void Acceptor::listen()
 {
   loop_->assertInLoopThread();
@@ -52,6 +55,7 @@ void Acceptor::listen()
   acceptChannel_.enableReading();
 }
 
+/// 新连接到来
 void Acceptor::handleRead()
 {
   loop_->assertInLoopThread();

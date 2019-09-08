@@ -26,7 +26,7 @@ using namespace muduo::net;
 
 namespace
 {
-__thread EventLoop* t_loopInThisThread = 0;
+__thread EventLoop* t_loopInThisThread = 0;//// mihooke 注释: 这是一个thread local变量
 
 const int kPollTimeMs = 10000;
 
@@ -61,6 +61,9 @@ EventLoop* EventLoop::getEventLoopOfCurrentThread()
   return t_loopInThisThread;
 }
 
+//// mihooke 注释
+//// 事件循环构造：构造poller，定时器和唤醒fd通道
+//// 唤醒通道设置回调EventLoop::handleRead
 EventLoop::EventLoop()
   : looping_(false),
     quit_(false),
@@ -82,7 +85,7 @@ EventLoop::EventLoop()
   }
   else
   {
-    t_loopInThisThread = this;
+      t_loopInThisThread = this;//// mihooke 注释: 构造即赋值自身，用于检查当前线程不能有多个loop
   }
   wakeupChannel_->setReadCallback(
       std::bind(&EventLoop::handleRead, this));
@@ -100,6 +103,8 @@ EventLoop::~EventLoop()
   t_loopInThisThread = NULL;
 }
 
+//// mihooke 注释
+//// 启动loop，主要是poll或epoll出有事件的通道，然后处理事件，如果有额外的loop操作则去执行，有效利用cpu
 void EventLoop::loop()
 {
   assert(!looping_);
@@ -136,6 +141,8 @@ void EventLoop::loop()
   looping_ = false;
 }
 
+//// mihooke 注释
+//// 退出loop，退出时无脑唤醒poll，因为有可能此时正阻塞在poll函数中
 void EventLoop::quit()
 {
   quit_ = true;
@@ -147,7 +154,9 @@ void EventLoop::quit()
     wakeup();
   }
 }
-
+//// mihooke 注释
+//// 线程安全地调用某个函数
+//// 疑问：何时调用时不在当前线程的loop中？
 void EventLoop::runInLoop(Functor cb)
 {
   if (isInLoopThread())
@@ -159,7 +168,8 @@ void EventLoop::runInLoop(Functor cb)
     queueInLoop(std::move(cb));
   }
 }
-
+//// mihooke 注释
+//// 把回调函数添加到执行队列里，如果 不在当前loop线程中或正在执行额外的functors（即poll无活动的事件），则唤醒，继续执行functors
 void EventLoop::queueInLoop(Functor cb)
 {
   {
@@ -178,7 +188,8 @@ size_t EventLoop::queueSize() const
   MutexLockGuard lock(mutex_);
   return pendingFunctors_.size();
 }
-
+//// mihooke 注释
+//// 添加定时器回调函数
 TimerId EventLoop::runAt(Timestamp time, TimerCallback cb)
 {
   return timerQueue_->addTimer(std::move(cb), time, 0.0);
@@ -195,19 +206,22 @@ TimerId EventLoop::runEvery(double interval, TimerCallback cb)
   Timestamp time(addTime(Timestamp::now(), interval));
   return timerQueue_->addTimer(std::move(cb), time, interval);
 }
-
+//// mihooke 注释
+//// 取消某个定时回调
 void EventLoop::cancel(TimerId timerId)
 {
   return timerQueue_->cancel(timerId);
 }
-
+//// mihooke 注释
+//// 更新某个通道：即把此通道加入到poller的监控列表中，或更新此通道的监控事件
 void EventLoop::updateChannel(Channel* channel)
 {
   assert(channel->ownerLoop() == this);
   assertInLoopThread();
   poller_->updateChannel(channel);
 }
-
+//// mihooke 注释
+//// 删除某个通道
 void EventLoop::removeChannel(Channel* channel)
 {
   assert(channel->ownerLoop() == this);
@@ -233,7 +247,8 @@ void EventLoop::abortNotInLoopThread()
             << " was created in threadId_ = " << threadId_
             << ", current thread id = " <<  CurrentThread::tid();
 }
-
+//// mihooke 注释
+//// 唤醒fd：向eventfd中写一个1，8个字节
 void EventLoop::wakeup()
 {
   uint64_t one = 1;
@@ -243,7 +258,8 @@ void EventLoop::wakeup()
     LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
   }
 }
-
+//// mihooke 注释
+//// 从eventfd中读取1，内容是什么无意义，只要从fd中取出8个字节即可
 void EventLoop::handleRead()
 {
   uint64_t one = 1;
@@ -253,7 +269,8 @@ void EventLoop::handleRead()
     LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
   }
 }
-
+//// mihooke 注释
+//// 执行functors，为了减小临界区，先把pendingFunctors_中函数swap到临时变量中
 void EventLoop::doPendingFunctors()
 {
   std::vector<Functor> functors;

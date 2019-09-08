@@ -59,7 +59,7 @@ class Poller : noncopyable
 
  protected:
   typedef std::map<int, Channel*> ChannelMap;
-  ChannelMap channels_;
+  ChannelMap channels_;//// mihooke 注释: fd和其所在的通道映射
 
  private:
   EventLoop* ownerLoop_;

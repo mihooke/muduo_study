@@ -46,7 +46,7 @@ class Acceptor : noncopyable
 
   EventLoop* loop_;
   Socket acceptSocket_;
-  Channel acceptChannel_;
+  Channel acceptChannel_; /// 专属接收连接通道
   NewConnectionCallback newConnectionCallback_;
   bool listenning_;
   int idleFd_;

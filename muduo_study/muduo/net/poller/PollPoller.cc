@@ -26,6 +26,8 @@ PollPoller::PollPoller(EventLoop* loop)
 
 PollPoller::~PollPoller() = default;
 
+//// mihooke 注释
+//// 系统poll函数调用，遍历当前loop中fds，并赋给出参activeChannels
 Timestamp PollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
   // XXX pollfds_ shouldn't change
@@ -51,7 +53,8 @@ Timestamp PollPoller::poll(int timeoutMs, ChannelList* activeChannels)
   }
   return now;
 }
-
+//// mihooke 注释
+//// 从所有fd中找出有事件的fd对应的通道
 void PollPoller::fillActiveChannels(int numEvents,
                                     ChannelList* activeChannels) const
 {
@@ -71,7 +74,8 @@ void PollPoller::fillActiveChannels(int numEvents,
     }
   }
 }
-
+//// mihooke 注释
+//// 更新通道：更新pollfds和fd和其对应的通道映射
 void PollPoller::updateChannel(Channel* channel)
 {
   Poller::assertInLoopThread();

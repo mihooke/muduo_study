@@ -41,7 +41,7 @@ class PollPoller : public Poller
                           ChannelList* activeChannels) const;
 
   typedef std::vector<struct pollfd> PollFdList;
-  PollFdList pollfds_;
+  PollFdList pollfds_;//// mihooke 注释: 保存了当前loop中所监听的fds
 };
 
 }  // namespace net
