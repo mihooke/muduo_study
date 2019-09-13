@@ -50,7 +50,8 @@ void removeConnector(const ConnectorPtr& connector)
 }  // namespace detail
 }  // namespace net
 }  // namespace muduo
-
+//// mihooke 注释
+//// client构造：构造连接器，设置回调
 TcpClient::TcpClient(EventLoop* loop,
                      const InetAddress& serverAddr,
                      const string& nameArg)
@@ -100,7 +101,8 @@ TcpClient::~TcpClient()
     loop_->runAfter(1, std::bind(&detail::removeConnector, connector_));
   }
 }
-
+//// mihooke 注释
+//// 启动连接器
 void TcpClient::connect()
 {
   // FIXME: check state
@@ -128,7 +130,8 @@ void TcpClient::stop()
   connect_ = false;
   connector_->stop();
 }
-
+//// mihooke 注释
+//// 连接server成功，创建连接
 void TcpClient::newConnection(int sockfd)
 {
   loop_->assertInLoopThread();

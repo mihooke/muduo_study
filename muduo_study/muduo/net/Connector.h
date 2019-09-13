@@ -63,7 +63,7 @@ class Connector : noncopyable,
   InetAddress serverAddr_;
   bool connect_; // atomic
   States state_;  // FIXME: use atomic variable
-  std::unique_ptr<Channel> channel_;
+  std::unique_ptr<Channel> channel_;//// mihooke 注释: 持有一个通道
   NewConnectionCallback newConnectionCallback_;
   int retryDelayMs_;
 };

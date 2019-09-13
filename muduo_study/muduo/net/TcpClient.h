@@ -81,6 +81,7 @@ class TcpClient : noncopyable
   // always in loop thread
   int nextConnId_;
   mutable MutexLock mutex_;
+  //// mihooke 注释: 每个client只有一个连接
   TcpConnectionPtr connection_ GUARDED_BY(mutex_);
 };
 

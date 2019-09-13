@@ -34,7 +34,8 @@ void muduo::net::defaultMessageCallback(const TcpConnectionPtr&,
 {
   buf->retrieveAll();
 }
-
+//// mihooke 注释
+//// tcp连接构造：构造封装fd的socket，构造通道，并给通道设置事件回调
 TcpConnection::TcpConnection(EventLoop* loop,
                              const string& nameArg,
                              int sockfd,
@@ -83,7 +84,8 @@ string TcpConnection::getTcpInfoString() const
   socket_->getTcpInfoString(buf, sizeof buf);
   return buf;
 }
-
+//// mihooke 注释
+//// 发送消息函数的几个重载
 void TcpConnection::send(const void* data, int len)
 {
   send(StringPiece(static_cast<const char*>(data), len));
@@ -103,7 +105,7 @@ void TcpConnection::send(const StringPiece& message)
       loop_->runInLoop(
           std::bind(fp,
                     this,     // FIXME
-                    message.as_string()));
+                    message.as_string()));//// mihooke 注释: 复制一份数据，下面是c++11做法，直接转发，避免拷贝
                     //std::forward<string>(message)));
     }
   }
@@ -148,13 +150,15 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     return;
   }
   // if no thing in output queue, try writing directly
+  //// mihooke 注释
+  //// 如果当前通道不在发送数据并且发送缓存为空，就尝试发送数据
   if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
   {
     nwrote = sockets::write(channel_->fd(), data, len);
     if (nwrote >= 0)
     {
       remaining = len - nwrote;
-      if (remaining == 0 && writeCompleteCallback_)
+      if (remaining == 0 && writeCompleteCallback_)//// mihooke 注释: 如果数据发送完，则回调发送完成函数
       {
         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
       }
@@ -174,7 +178,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 
   assert(remaining <= len);
-  if (!faultError && remaining > 0)
+  if (!faultError && remaining > 0)//// mihooke 注释: 如果没发送完
   {
     size_t oldLen = outputBuffer_.readableBytes();
     if (oldLen + remaining >= highWaterMark_
@@ -183,14 +187,15 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     {
       loop_->queueInLoop(std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + remaining));
     }
-    outputBuffer_.append(static_cast<const char*>(data)+nwrote, remaining);
+    outputBuffer_.append(static_cast<const char*>(data)+nwrote, remaining);//// mihooke 注释: 把剩余字节数据放到发送缓冲区
     if (!channel_->isWriting())
     {
-      channel_->enableWriting();
+        channel_->enableWriting();//// mihooke 注释: 继续监听写事件
     }
   }
 }
-
+//// mihooke 注释
+//// 关闭连接时，只关闭写
 void TcpConnection::shutdown()
 {
   // FIXME: use compare and swap
@@ -319,7 +324,8 @@ void TcpConnection::stopReadInLoop()
     reading_ = false;
   }
 }
-
+//// mihooke 注释
+//// 连接建立：通道中保存一份连接，并回调连接函数
 void TcpConnection::connectEstablished()
 {
   loop_->assertInLoopThread();
@@ -330,7 +336,8 @@ void TcpConnection::connectEstablished()
 
   connectionCallback_(shared_from_this());
 }
-
+//// mihooke 注释
+//// 连接销毁：也回调连接函数
 void TcpConnection::connectDestroyed()
 {
   loop_->assertInLoopThread();
@@ -343,7 +350,8 @@ void TcpConnection::connectDestroyed()
   }
   channel_->remove();
 }
-
+//// mihooke 注释
+//// 通道中检测到可读事件，便回调此函数，并回调用户的收到消息函数
 void TcpConnection::handleRead(Timestamp receiveTime)
 {
   loop_->assertInLoopThread();
@@ -364,7 +372,9 @@ void TcpConnection::handleRead(Timestamp receiveTime)
     handleError();
   }
 }
-
+//// mihooke 注释
+//// 通道中检测到可写事件，便回调此函数，可以认为此函数是sendInLoop之后继续发送发送缓冲区中的数据
+//// 注意：此函数和sendInLoop都只调用系统函数write一次，而没有反复调用直到返回EAGAIN，因为第一次如果没发送完数据，第二次调用肯定会返回EAGAIN
 void TcpConnection::handleWrite()
 {
   loop_->assertInLoopThread();
@@ -378,7 +388,7 @@ void TcpConnection::handleWrite()
       outputBuffer_.retrieve(n);
       if (outputBuffer_.readableBytes() == 0)
       {
-        channel_->disableWriting();
+          channel_->disableWriting();//// mihooke 注释: 发送完毕则不监听写事件
         if (writeCompleteCallback_)
         {
           loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
@@ -404,7 +414,8 @@ void TcpConnection::handleWrite()
               << " is down, no more writing";
   }
 }
-
+//// mihooke 注释
+//// 对端关闭了连接：通道不关心所有事件了，回调用户的连接函数，回调用户的关闭函数
 void TcpConnection::handleClose()
 {
   loop_->assertInLoopThread();

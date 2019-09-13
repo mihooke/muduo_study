@@ -20,7 +20,9 @@ using namespace muduo;
 using namespace muduo::net;
 
 const int Connector::kMaxRetryDelayMs;
-
+//// mihooke 注释
+//// 连接器只负责建立socket连接
+//// 连接器需要处理重连，自连接
 Connector::Connector(EventLoop* loop, const InetAddress& serverAddr)
   : loop_(loop),
     serverAddr_(serverAddr),
@@ -74,7 +76,8 @@ void Connector::stopInLoop()
     retry(sockfd);
   }
 }
-
+//// mihooke 注释
+//// 建立非阻塞连接，connect返回之后，连接不一定就建立了，需要判断返回值
 void Connector::connect()
 {
   int sockfd = sockets::createNonblockingOrDie(serverAddr_.family());
@@ -86,7 +89,7 @@ void Connector::connect()
     case EINPROGRESS:
     case EINTR:
     case EISCONN:
-      connecting(sockfd);
+      connecting(sockfd);//// mihooke 注释: 正在建立
       break;
 
     case EAGAIN:
@@ -94,7 +97,7 @@ void Connector::connect()
     case EADDRNOTAVAIL:
     case ECONNREFUSED:
     case ENETUNREACH:
-      retry(sockfd);
+      retry(sockfd);//// mihooke 注释: 重连
       break;
 
     case EACCES:
@@ -124,7 +127,8 @@ void Connector::restart()
   connect_ = true;
   startInLoop();
 }
-
+//// mihooke 注释
+//// 正在建立连接的话，构造通道，并设置可写回调，fd可写意味着连接已成功建立
 void Connector::connecting(int sockfd)
 {
   setState(kConnecting);
@@ -154,7 +158,8 @@ void Connector::resetChannel()
 {
   channel_.reset();
 }
-
+//// mihooke 注释
+//// fd可写，回调连接建立函数
 void Connector::handleWrite()
 {
   LOG_TRACE << "Connector::handleWrite " << state_;
@@ -205,7 +210,8 @@ void Connector::handleError()
     retry(sockfd);
   }
 }
-
+//// mihooke 注释
+//// 在定时器中重连server
 void Connector::retry(int sockfd)
 {
   sockets::close(sockfd);

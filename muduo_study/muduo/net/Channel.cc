@@ -20,7 +20,8 @@ using namespace muduo::net;
 const int Channel::kNoneEvent = 0;
 const int Channel::kReadEvent = POLLIN | POLLPRI;
 const int Channel::kWriteEvent = POLLOUT;
-
+//// mihooke 注释
+//// 通道只负责一个fd的IO事件分发，通道的上层封装是TcpConnection，只属于一个loop
 Channel::Channel(EventLoop* loop, int fd__)
   : loop_(loop),
     fd_(fd__),
@@ -49,7 +50,8 @@ void Channel::tie(const std::shared_ptr<void>& obj)
   tie_ = obj;
   tied_ = true;
 }
-
+//// mihooke 注释
+//// 更新通道
 void Channel::update()
 {
   addedToLoop_ = true;
@@ -68,7 +70,7 @@ void Channel::handleEvent(Timestamp receiveTime)
   std::shared_ptr<void> guard;
   if (tied_)
   {
-    guard = tie_.lock();
+    guard = tie_.lock();//// mihooke 注释: 这么做是为了保证在分发事件时连接不被销毁
     if (guard)
     {
       handleEventWithGuard(receiveTime);
@@ -79,7 +81,7 @@ void Channel::handleEvent(Timestamp receiveTime)
     handleEventWithGuard(receiveTime);
   }
 }
-
+//// mihooke 注释: 分发不同事件
 void Channel::handleEventWithGuard(Timestamp receiveTime)
 {
   eventHandling_ = true;

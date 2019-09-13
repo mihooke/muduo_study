@@ -75,7 +75,7 @@ class TcpConnection : noncopyable,
   // reading or not
   void startRead();
   void stopRead();
-  bool isReading() const { return reading_; }; // NOT thread safe, may race with start/stopReadInLoop
+  bool isReading() const { return reading_; } // NOT thread safe, may race with start/stopReadInLoop
 
   void setContext(const boost::any& context)
   { context_ = context; }
@@ -136,8 +136,8 @@ class TcpConnection : noncopyable,
   StateE state_;  // FIXME: use atomic variable
   bool reading_;
   // we don't expose those classes to client.
-  std::unique_ptr<Socket> socket_;
-  std::unique_ptr<Channel> channel_;
+  std::unique_ptr<Socket> socket_;//// mihooke 注释: 持有一个封装fd的socket
+  std::unique_ptr<Channel> channel_;//// mihooke 注释: 持有一个处理事件的通道
   const InetAddress localAddr_;
   const InetAddress peerAddr_;
   ConnectionCallback connectionCallback_;
@@ -146,7 +146,7 @@ class TcpConnection : noncopyable,
   HighWaterMarkCallback highWaterMarkCallback_;
   CloseCallback closeCallback_;
   size_t highWaterMark_;
-  Buffer inputBuffer_;
+  Buffer inputBuffer_;//// mihooke 注释: 一个tcp连接需要一个接收缓冲区和一个发送缓冲区
   Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
   boost::any context_;
   // FIXME: creationTime_, lastReceiveTime_

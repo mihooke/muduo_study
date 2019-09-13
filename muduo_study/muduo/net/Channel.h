@@ -86,18 +86,19 @@ class Channel : noncopyable
   void update();
   void handleEventWithGuard(Timestamp receiveTime);
 
-  static const int kNoneEvent;
+  static const int kNoneEvent;//// mihooke 注释: 定义这三个变量是为了不让在头文件中包含系统头文件
   static const int kReadEvent;
   static const int kWriteEvent;
 
   EventLoop* loop_;
-  const int  fd_;
-  int        events_;
+  const int  fd_;//// mihooke 注释: 通道所负责的fd
+  int        events_;//// mihooke 注释: 通道所关心的事件
+  //// mihooke 注释: 当前活动的事件
   int        revents_; // it's the received event types of epoll or poll
   int        index_; // used by Poller.
   bool       logHup_;
 
-  std::weak_ptr<void> tie_;
+  std::weak_ptr<void> tie_;//// mihooke 注释: 通道会保存连接的弱指针
   bool tied_;
   bool eventHandling_;
   bool addedToLoop_;
