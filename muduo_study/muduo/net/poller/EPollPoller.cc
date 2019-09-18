@@ -35,7 +35,11 @@ const int kNew = -1;
 const int kAdded = 1;
 const int kDeleted = 2;
 }
-
+//// mihooke 注释
+//// muduo采用LT，有三个原因：
+//// 1. 与poll兼容，因为在监听fd数量比较少，而活动fd比例高时，epoll并不比poll高效
+//// 2. LT编程更容易，不可能漏掉事件
+//// 3. 读写时不必等待出现EAGAIN，可节省系统调用
 EPollPoller::EPollPoller(EventLoop* loop)
   : Poller(loop),
     epollfd_(::epoll_create1(EPOLL_CLOEXEC)),

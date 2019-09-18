@@ -21,7 +21,9 @@ const char Buffer::kCRLF[] = "\r\n";
 
 const size_t Buffer::kCheapPrepend;
 const size_t Buffer::kInitialSize;
-
+//// mihooke 注释
+//// 这个函数解决了一个这样的矛盾：缓冲区既要尽可能减少系统调用（也就是说一次要读很多数据），又要减少内存占用
+//// 如果buffer中可写字节数不够65535,则把fd中的数据先读到栈上，之后再append，如果够，则直接读到buffer中
 ssize_t Buffer::readFd(int fd, int* savedErrno)
 {
   // saved an ioctl()/FIONREAD call to tell how much to read

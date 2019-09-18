@@ -23,6 +23,8 @@ namespace net
 ///
 /// Internal class for timer event.
 ///
+//// mihooke 注释
+//// Timer封装了执行函数和有效期
 class Timer : noncopyable
 {
  public:

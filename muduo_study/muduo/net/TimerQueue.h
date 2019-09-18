@@ -54,11 +54,12 @@ class TimerQueue : noncopyable
   // FIXME: use unique_ptr<Timer> instead of raw pointers.
   // This requires heterogeneous comparison lookup (N3465) from C++14
   // so that we can find an T* in a set<unique_ptr<T>>.
+    //// mihooke 注释
+    //// 定时器中会频繁添加删除，所以数据结构用红黑树
   typedef std::pair<Timestamp, Timer*> Entry;
   typedef std::set<Entry> TimerList;
   typedef std::pair<Timer*, int64_t> ActiveTimer;
   typedef std::set<ActiveTimer> ActiveTimerSet;
-
   void addTimerInLoop(Timer* timer);
   void cancelInLoop(TimerId timerId);
   // called when timerfd alarms
@@ -71,9 +72,9 @@ class TimerQueue : noncopyable
 
   EventLoop* loop_;
   const int timerfd_;
-  Channel timerfdChannel_;
+  Channel timerfdChannel_;//// mihooke 注释: timer fd专属通道
   // Timer list sorted by expiration
-  TimerList timers_;
+  TimerList timers_;//// mihooke 注释: 保存了所有定时执行的函数；元素是timer执行的时间和timer
 
   // for cancel()
   ActiveTimerSet activeTimers_;

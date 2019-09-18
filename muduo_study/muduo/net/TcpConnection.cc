@@ -105,6 +105,7 @@ void TcpConnection::send(const StringPiece& message)
       loop_->runInLoop(
           std::bind(fp,
                     this,     // FIXME
+                    //// mihooke 注释: 拷贝一份数据是为了保证跨线程的函数转移调用
                     message.as_string()));//// mihooke 注释: 复制一份数据，下面是c++11做法，直接转发，避免拷贝
                     //std::forward<string>(message)));
     }
@@ -178,7 +179,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 
   assert(remaining <= len);
-  if (!faultError && remaining > 0)//// mihooke 注释: 如果没发送完
+  if (!faultError && remaining > 0)//// mihooke 注释: 如果没发送完或正在发送
   {
     size_t oldLen = outputBuffer_.readableBytes();
     if (oldLen + remaining >= highWaterMark_
@@ -388,7 +389,7 @@ void TcpConnection::handleWrite()
       outputBuffer_.retrieve(n);
       if (outputBuffer_.readableBytes() == 0)
       {
-          channel_->disableWriting();//// mihooke 注释: 发送完毕则不监听写事件
+          channel_->disableWriting();//// mihooke 注释: 发送完毕则不监听写事件，因为muduo是LT模式，否则会一直触发写事件
         if (writeCompleteCallback_)
         {
           loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
