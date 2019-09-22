@@ -6,4 +6,10 @@ CONFIG -= qt
 INCLUDEPATH += ../muduo_study
 LIBS += -pthread
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    epollpoller.cpp \
+    socket.cpp
+
+HEADERS += \
+    epollpoller.h \
+    socket.h
