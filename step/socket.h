@@ -18,6 +18,9 @@ public:
     int fd() const {return _fd;}
 
     void shutdownWrite();
+
+    void setReuseAddr(bool on);
+    void setReusePort(bool on);
 private:
     const int _fd;
 };

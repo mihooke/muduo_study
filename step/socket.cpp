@@ -45,11 +45,11 @@ int Socket::accept()
 {
     struct sockaddr_in connectAddr;
     memset(&connectAddr, 0, sizeof connectAddr);
-    socklen_t connectAddrLen;
+    socklen_t connectAddrLen = 0;
     int connectFd = ::accept(_fd, (sockaddr*)&connectAddr, &connectAddrLen);
     if (connectFd < 0)
     {
-        cout << "accept error" << endl;
+        cout << "accept error: " << connectFd << endl;
         abort();
     }
     return connectFd;
@@ -58,6 +58,20 @@ int Socket::accept()
 void Socket::shutdownWrite()
 {
 
+}
+
+void Socket::setReuseAddr(bool on)
+{
+    int optval = on ? 1 : 0;
+    ::setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR,
+                 &optval, static_cast<socklen_t>(sizeof optval));
+}
+
+void Socket::setReusePort(bool on)
+{
+    int optval = on ? 1 : 0;
+    ::setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT,
+                 &optval, static_cast<socklen_t>(sizeof optval));
 }
 
 } // namespace mihooke
