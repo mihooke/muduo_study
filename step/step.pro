@@ -8,8 +8,12 @@ LIBS += -pthread
 
 SOURCES += main.cpp \
     epollpoller.cpp \
-    socket.cpp
+    socket.cpp \
+    tcpserver.cpp \
+    eventloop.cpp
 
 HEADERS += \
     epollpoller.h \
-    socket.h
+    socket.h \
+    tcpserver.h \
+    eventloop.h
