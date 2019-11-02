@@ -2,9 +2,11 @@
 #define EPOLLPOLLER_H
 
 #include <vector>
+#include <map>
 
 struct epoll_event;
 namespace mihooke {
+class Channel;
 
 class EpollPoller
 {
@@ -13,18 +15,20 @@ public:
 
     ~EpollPoller();
 
-    int poll();
+    int poll(std::vector<Channel*> &activeChannels);
     std::vector<struct epoll_event> waitEvents() const {return _waitEvents;}
 
     void addEvent(unsigned int event, int fd);
     void modEvent(unsigned int event, int fd);
     void delEvent(unsigned int event, int fd);
 
+    void updateChannel(Channel *channel);
 private:
-    void update();
+    void update(int operation, Channel *channel);
 
     int _epollFd;
     std::vector<struct epoll_event> _waitEvents;
+    std::map<int, Channel*> _channels;
 };
 } // namespace mihooke
 

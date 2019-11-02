@@ -10,10 +10,14 @@ SOURCES += main.cpp \
     epollpoller.cpp \
     socket.cpp \
     tcpserver.cpp \
-    eventloop.cpp
+    eventloop.cpp \
+    acceptor.cpp \
+    channel.cpp
 
 HEADERS += \
     epollpoller.h \
     socket.h \
     tcpserver.h \
-    eventloop.h
+    eventloop.h \
+    acceptor.h \
+    channel.h

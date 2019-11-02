@@ -2,12 +2,14 @@
 #define EVENTLOOP_H
 #include <memory>
 #include <functional>
+#include <vector>
 #include <sys/epoll.h>
 
 
 namespace mihooke {
 
 class EpollPoller;
+class Channel;
 
 class EventLoop
 {
@@ -20,9 +22,12 @@ public:
     void setNewConnectionCallback(const NewConnectionCallback &cb);
     void setListenFd(int fd) {_listenFd = fd;}
 
+    void updateChannel(Channel *channel);
+
 private:
     std::unique_ptr<EpollPoller> _poller;
     NewConnectionCallback _newConnectionCb;
+    std::vector<Channel*> _activeChannels;
     int _listenFd{};
 };
 } // namespace mihooke

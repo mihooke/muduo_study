@@ -1,5 +1,7 @@
 #include "tcpserver.h"
 #include "eventloop.h"
+#include "acceptor.h"
+#include "channel.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
@@ -21,30 +23,30 @@ int createSocketFd()
 }
 
 TcpServer::TcpServer(EventLoop *loop, unsigned short port)
-    : _loop(loop), _port(port), _fd(createSocketFd()), _listenSock(_fd)
+    : _loop(loop), _fd(createSocketFd()), _port(port), _acceptor(new Acceptor(loop, _fd, port))
 {
-    //// mihooke 注释: 将监听fd加入epoll中
-    _loop->addEventFd(_fd);
-
-    _loop->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, _1));
+    _acceptor->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, _1));
     _loop->setListenFd(_fd);
 }
 
 void TcpServer::start()
 {
-    _listenSock.setReuseAddr(true);
-    _listenSock.setReusePort(true);
-    _listenSock.bind(_port);
-    _listenSock.listen();
+    _acceptor->listen();
 }
 
 void TcpServer::newConnection(int fd)
 {
-    int connectFd = _listenSock.accept();
-    //// mihooke 注释: 设置新连接为非阻塞的
-    int flags = fcntl(connectFd, F_GETFL, 0);
-    flags |= O_NONBLOCK;
-    fcntl(connectFd, F_SETFL, flags);
-    _loop->addEventFd(connectFd);
+    cout << "A new client connected:" << fd << endl;
+    shared_ptr<Channel> channel(new Channel(_loop, fd));
+    _connections[fd] = channel;
+    channel->setReadEventCallback(bind(&TcpServer::handleRead, this));
+    channel->enableReading();
 }
+
+void TcpServer::handleRead()
+{
+    cout << "A message from client" << endl;
+    //// TODO 需要把fd中的数据读完,否则会一直触发可读事件，这就需要增加TcpConnection类
+}
+
 } // namespace mihooke

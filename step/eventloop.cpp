@@ -1,5 +1,7 @@
 #include "eventloop.h"
 #include "epollpoller.h"
+#include "channel.h"
+
 #include <sys/epoll.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,50 +17,13 @@ void EventLoop::loop()
 {
     while (true)
     {
-        int numEvents = _poller->poll();
-        const std::vector<struct epoll_event> waitEvents = _poller->waitEvents();
-        std::cout<<numEvents << " " << waitEvents[0].data.fd<<" " <<_listenFd<<std::endl;
+        //// mihooke 注释: need clear before new loop
+        _activeChannels.clear();
+        int numEvents = _poller->poll(_activeChannels);
 
-        for (int i=0; i<numEvents; ++i)
+        for (Channel *channel : _activeChannels)
         {
-            uint32_t revent = waitEvents[i].events;
-            int rfd = waitEvents[i].data.fd;
-            //// mihooke 注释: 监听fd有可读事件，则有新连接
-            if ((revent & EPOLLIN) && (rfd == _listenFd))
-            {
-                _newConnectionCb(rfd);
-            }
-            //// mihooke 注释: 其他可读事件
-            else if (revent & EPOLLIN)
-            {
-                char buf[1024];
-                memset(buf, 0, 1024);
-                long nRead = read(rfd, buf, 1024);
-                if (nRead < 0)
-                {
-                    std::cout << "read error" << std::endl;
-                    _poller->delEvent(EPOLLIN, rfd);
-                    close(rfd);
-                }
-                else if (nRead == 0)
-                {
-                    std::cout << "client closed" << std::endl;
-                    _poller->delEvent(EPOLLIN, rfd);
-                    close(rfd);
-                }
-                else
-                {
-                    std::cout << "read message:" << buf << std::endl;
-                    _poller->modEvent(EPOLLIN, rfd);
-                }
-            }
-            //// mihooke 注释: 可写事件
-            else if (revent & EPOLLOUT)
-            {
-                char buf[] = "a message from server";
-                long nWrite = write(rfd, buf, 1024);
-                _poller->modEvent(EPOLLIN, rfd);
-            }
+            channel->handleEvent();
         }
     }
 }
@@ -71,5 +36,10 @@ void EventLoop::addEventFd(int fd)
 void EventLoop::setNewConnectionCallback(const NewConnectionCallback &cb)
 {
     _newConnectionCb = cb;
+}
+
+void EventLoop::updateChannel(Channel *channel)
+{
+    _poller->updateChannel(channel);
 }
 } // namespace mihooke
