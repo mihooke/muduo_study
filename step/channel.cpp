@@ -39,25 +39,6 @@ void Channel::handleEvent()
     }
     if (_revents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
-//        char buf[1024];
-//        memset(buf, 0, 1024);
-//        long nRead = read(_fd, buf, 1024);
-//        if (nRead < 0)
-//        {
-//            std::cout << "read error" << std::endl;
-//            close(_fd);
-//        }
-//        else if (nRead == 0)
-//        {
-//            std::cout << "client closed" << std::endl;
-//            close(_fd);
-//            disableAll();
-//        }
-//        else
-//        {
-//            std::cout << "read message:" << buf << std::endl;
-//            enableReading();
-//        }
         if (_readEventCallback)
             _readEventCallback();
     }

@@ -26,7 +26,11 @@ TcpServer::TcpServer(EventLoop *loop, unsigned short port)
     : _loop(loop), _fd(createSocketFd()), _port(port), _acceptor(new Acceptor(loop, _fd, port))
 {
     _acceptor->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, _1));
-    _loop->setListenFd(_fd);
+}
+
+TcpServer::~TcpServer()
+{
+
 }
 
 void TcpServer::start()

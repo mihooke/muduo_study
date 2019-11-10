@@ -3,7 +3,6 @@
 #include <memory>
 #include <functional>
 
-// #include "socket.h"
 
 namespace mihooke {
 class EventLoop;

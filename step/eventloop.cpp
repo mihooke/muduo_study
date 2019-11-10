@@ -13,6 +13,11 @@ EventLoop::EventLoop() : _poller(new EpollPoller)
 
 }
 
+EventLoop::~EventLoop()
+{
+
+}
+
 void EventLoop::loop()
 {
     while (true)
@@ -26,11 +31,6 @@ void EventLoop::loop()
             channel->handleEvent();
         }
     }
-}
-
-void EventLoop::addEventFd(int fd)
-{
-    _poller->addEvent(EPOLLIN, fd);
 }
 
 void EventLoop::setNewConnectionCallback(const NewConnectionCallback &cb)

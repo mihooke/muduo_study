@@ -40,38 +40,6 @@ int EpollPoller::poll(std::vector<Channel*> &activeChannels)
     return numEvents;
 }
 
-void EpollPoller::addEvent(unsigned int event, int fd)
-{
-    struct epoll_event ev;
-    ev.events = event;
-    ev.data.fd = fd;
-    if (::epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &ev) < 0)
-    {
-        abort();
-    }
-}
-
-void EpollPoller::modEvent(unsigned int event, int fd)
-{
-    struct epoll_event ev;
-    ev.events = event;
-    ev.data.fd = fd;
-    if (::epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev) < 0)
-    {
-        abort();
-    }
-}
-
-void EpollPoller::delEvent(unsigned int event, int fd)
-{
-    struct epoll_event ev;
-    ev.events = event;
-    ev.data.fd = fd;
-    if (::epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &ev) < 0)
-    {
-        abort();
-    }
-}
 
 void EpollPoller::updateChannel(Channel *channel)
 {
