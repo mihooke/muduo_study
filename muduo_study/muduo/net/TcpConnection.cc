@@ -86,6 +86,8 @@ string TcpConnection::getTcpInfoString() const
 }
 //// mihooke 注释
 //// 发送消息函数的几个重载
+//// send系列重载函数是对外提供的发送数据调用方法，规则是：先尝试发送数据，若发送不完，则存放到发送缓冲区，监控可读事件，
+//// 有可读事件后，会再次调用handleRead()急需发送之前剩余的数据
 void TcpConnection::send(const void* data, int len)
 {
   send(StringPiece(static_cast<const char*>(data), len));
@@ -179,7 +181,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
   }
 
   assert(remaining <= len);
-  if (!faultError && remaining > 0)//// mihooke 注释: 如果没发送完或正在发送
+  if (!faultError && remaining > 0)//// mihooke 注释: 如果没发送完
   {
     size_t oldLen = outputBuffer_.readableBytes();
     if (oldLen + remaining >= highWaterMark_
@@ -191,7 +193,7 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     outputBuffer_.append(static_cast<const char*>(data)+nwrote, remaining);//// mihooke 注释: 把剩余字节数据放到发送缓冲区
     if (!channel_->isWriting())
     {
-        channel_->enableWriting();//// mihooke 注释: 继续监听写事件
+        channel_->enableWriting();//// mihooke 注释: 继续监听写事件，这是LT模式下发送数据正确做法
     }
   }
 }

@@ -55,6 +55,7 @@ class Channel : noncopyable
 
   int fd() const { return fd_; }
   int events() const { return events_; }
+  //// mihooke 注释: 由poller监控到事件后，保存到此
   void set_revents(int revt) { revents_ = revt; } // used by pollers
   // int revents() const { return revents_; }
   bool isNoneEvent() const { return events_ == kNoneEvent; }

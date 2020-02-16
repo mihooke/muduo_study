@@ -6,6 +6,45 @@
 
 // Author: Shuo Chen (chenshuo at chenshuo dot com)
 
+
+struct sockaddr {
+      unsigned short sa_family;     /* address family, AF_xxx */
+      char sa_data[14];                  /* 14 bytes of protocol address */
+};
+
+//// 在使用时用sockaddr_in，传参时需转换成sockaddr类型
+struct sockaddr_in {
+      short int sin_family;                /* Address family AF_INET */
+      unsigned short int sin_port;    /* Port number */
+      struct in_addr sin_addr;         /* Internet address */
+      unsigned char sin_zero[8];     /* Same size as struct sockaddr */
+};
+struct in_addr {
+      unsigned long s_addr;           /* Internet address */
+};
+
+struct sockaddr_in6 {
+      sa_family_t sin6_family;         /* AF_INET6 */
+      in_port_t sin6_port;               /* transport layer port # */
+      uint32_t sin6_flowinfo;           /* IPv6 traffic class & flow info */
+      struct in6_addr sin6_addr;    /* IPv6 address */
+      uint32_t sin6_scope_id;        /* set of interfaces for a scope */
+};
+struct in6_addr {
+      uint8_t s6_addr[16];            /* IPv6 address */
+};
+
+struct addrinfo{
+      int ai_flags;                         /* AI_PASSIVE,AI_CANONNAME,AI_NUMERICHOST */
+      int ai_family;                        /* AF_INET,AF_INET6 */
+      int ai_socktype;                   /* SOCK_STREAM,SOCK_DGRAM */
+      int ai_protocol;                   /* IPPROTO_IP, IPPROTO_IPV4, IPPROTO_IPV6 */
+      size_t ai_addrlen;               /* Length */
+      char *ai_cannoname;         /* */
+      struct sockaddr *ai_addr;   /* struct sockaddr */
+      struct addrinfo *ai_next;      /* pNext */
+}
+
 #include "muduo/net/SocketsOps.h"
 
 #include "muduo/base/Logging.h"

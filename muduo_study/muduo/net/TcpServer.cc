@@ -73,8 +73,8 @@ void TcpServer::start()
 }
 
 /// 新连接到来，为新连接设置回调
-/// 先从线程池选择一个EventLopp，那么这个新连接就只能在此loop里运行了
-/// 保存此连接
+/// 先从线程池选择一个EventLoop，那么这个新连接的事件监控就交给此loop
+/// 保存此连接到map
 /// 回调连接建立函数
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 {

@@ -23,7 +23,7 @@ const int Channel::kWriteEvent = POLLOUT;
 //// mihooke 注释
 //// 通道只负责一个fd的IO事件分发，通道的上层封装是TcpConnection，只属于一个loop
 Channel::Channel(EventLoop* loop, int fd__)
-  : loop_(loop),
+  : loop_(loop), //// 归属loop
     fd_(fd__),
     events_(0),
     revents_(0),
@@ -51,7 +51,7 @@ void Channel::tie(const std::shared_ptr<void>& obj)
   tied_ = true;
 }
 //// mihooke 注释
-//// 更新通道
+//// 更新通道监控的事件
 void Channel::update()
 {
   addedToLoop_ = true;

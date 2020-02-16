@@ -56,6 +56,8 @@ class TimerQueue : noncopyable
   // so that we can find an T* in a set<unique_ptr<T>>.
     //// mihooke 注释
     //// 定时器中会频繁添加删除，所以数据结构用红黑树
+    ////
+    //// 把pair当作set元素，利用pair的first排序；其实也可以用Timer*当作set元素，因为Timer中已经保存了Timestamp信息
   typedef std::pair<Timestamp, Timer*> Entry;
   typedef std::set<Entry> TimerList;
   typedef std::pair<Timer*, int64_t> ActiveTimer;

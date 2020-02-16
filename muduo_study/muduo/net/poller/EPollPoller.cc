@@ -59,6 +59,9 @@ EPollPoller::~EPollPoller()
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
   LOG_TRACE << "fd total count " << channels_.size();
+  //// mihooke 注释
+  //// epoll_wait第二个参数是出参，存放就绪事件的数组，第三个参数是监控最大数量；
+  //// 这里默认是16，根据每次获取到的活跃fd数量来动态增大数组
   int numEvents = ::epoll_wait(epollfd_,
                                &*events_.begin(),
                                static_cast<int>(events_.size()),
@@ -103,6 +106,8 @@ void EPollPoller::fillActiveChannels(int numEvents,
     assert(it != channels_.end());
     assert(it->second == channel);
 #endif
+    //// mihooke 注释
+    //// 保存活动事件
     channel->set_revents(events_[i].events);
     activeChannels->push_back(channel);
   }
@@ -178,7 +183,7 @@ void EPollPoller::update(int operation, Channel* channel)
   struct epoll_event event;
   memZero(&event, sizeof event);
   event.events = channel->events();
-  event.data.ptr = channel;
+  event.data.ptr = channel; //// mihooke 注释：巧用ptr指针保存数据
   int fd = channel->fd();
   LOG_TRACE << "epoll_ctl op = " << operationToString(operation)
     << " fd = " << fd << " event = { " << channel->eventsToString() << " }";

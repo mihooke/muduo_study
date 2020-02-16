@@ -192,12 +192,12 @@ std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now)
   TimerList::iterator end = timers_.lower_bound(sentry);
   assert(end == timers_.end() || now < end->first);
   std::copy(timers_.begin(), end, back_inserter(expired));
-  timers_.erase(timers_.begin(), end);
+  timers_.erase(timers_.begin(), end); //// void erase (iterator first, iterator last); 此erase重载无返回值
 
   for (const Entry& it : expired)
   {
     ActiveTimer timer(it.second, it.second->sequence());
-    size_t n = activeTimers_.erase(timer);
+    size_t n = activeTimers_.erase(timer); //// size_type erase (const value_type& val); 此erase重载返回值是删除元素的个数，此处恒为1
     assert(n == 1); (void)n;
   }
 

@@ -44,6 +44,7 @@ EventLoopThread::~EventLoopThread()
 //// 对这两个函数的写法有疑问：startLoop()里为什么不直接生成一个loop对象？然后在threadFunc()里直接开启循环？
 //// 一个可能的原因是：目前muduo的做法loop是stack object，如果按照疑问里做法，loop需要是heap Object
 //// 同样的，如果EventLoop loop_，由于EventLoopThread是new出来的，所以loop_也是heap object
+//// 释疑：新线程里需要运行loop()，线程池里需保存loop指针，但线程池不知道何时loop对象产生，就需要等待；个人想法：loop对象也可由线程池生成管理
 EventLoop* EventLoopThread::startLoop()
 {
   assert(!thread_.started());
